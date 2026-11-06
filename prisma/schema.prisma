@@ -1,0 +1,833 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ToneOptions {
+  blue
+  gold
+  emerald
+  sapphire
+  amber
+  crimson
+}
+
+enum ClientStatus {
+  active
+  onboarding
+  paused
+  inactive
+}
+
+enum Health {
+  on_track
+  at_risk
+  off_track
+}
+
+enum ProjectStatus {
+  planning
+  active
+  on_hold
+  completed
+}
+
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum TaskStatus {
+  backlog
+  todo
+  in_progress
+  review
+  blocked
+  done
+}
+
+enum DocumentStatus {
+  uploading
+  processing
+  indexing
+  ready
+  failed
+}
+
+enum DocumentItemKind {
+  pdf
+  docx
+  xlsx
+  image
+  other
+}
+
+enum ActivityKind {
+  upload
+  approval
+  comment
+  complete
+  assign
+  create
+  update
+  ai
+  alert
+}
+
+enum MileStoneStatus {
+  done
+  upcoming
+  late
+  awaiting_approval
+}
+
+enum AttentionType {
+  overdue_project
+  blocked_task
+  approval
+  follow_up
+  automation
+  document
+}
+
+enum AttentionUrgency {
+  critical
+  high
+  medium
+}
+
+enum DeadlineKind {
+  milestone
+  task
+}
+
+enum DeadlineStatus {
+  on_track
+  at_risk
+  late
+}
+
+enum NotificationCategory {
+  mentions
+  tasks
+  projects
+  clients
+  ai
+  billing
+}
+
+enum kpiCategoryId {
+  clients
+  projects
+  overdue
+  revenue
+  ai
+}
+
+enum kpiTrend {
+  up
+  down
+  flat
+}
+
+enum kpiSentiment {
+  positive
+  negative
+  neutral
+}
+
+enum SingletonId {
+  SINGLETON
+}
+
+// AI enums
+
+enum AIScopeKind {
+  workspace
+  client
+  project
+  document
+}
+
+enum AICitationKind {
+  document
+  client
+  project
+  task
+  activity
+}
+
+enum AIProposedActionKind {
+  create_task
+  send_email
+  update_status
+  update_client
+}
+
+enum AIProposedActionState {
+  pending
+  approved
+  dismissed
+}
+
+enum AIMessageRole {
+  user
+  assistant
+}
+
+enum AIMessageStatus {
+  thinking
+  streaming
+  done
+  error
+  stoppped
+}
+
+// Automation enums
+
+enum AutomationNodeKind {
+  trigger
+  condition
+  action
+  ai
+}
+
+enum AutomationRunStatus {
+  success
+  failed
+  running
+  retrying
+}
+
+enum AutomationRunStepsState {
+  done
+  active
+  pending
+  failed
+}
+
+enum AutomationTriggerType {
+  client
+  project
+  task
+  document
+  billing
+}
+
+// Team enums
+
+enum Roles {
+  owner
+  admin
+  manager
+  employee
+}
+
+enum TeamMemberStatus {
+  active
+  invited
+  deactivated
+}
+
+// Billing & usage enums
+
+enum InvoiceStatus {
+  paid
+  open
+  failed
+}
+
+enum PlanCategoryId {
+  starter
+  growth
+  scale
+}
+
+// Settings enums
+
+enum IntegrationStatus {
+  connected
+  error
+  available
+}
+
+enum TeammateStatus {
+  Admin
+  Manager
+  Employee
+}
+
+// type InvitedTeammate {
+//   email String
+//   status TeammateStatus
+//   url String
+//   urlIsUsed Boolean
+// }
+
+// --- Auth.js Required Models. User model is below ---
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device String?
+  location String?
+  lastActive String
+  current Boolean?
+  expires      DateTime
+}
+
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  @@unique([identifier, token])
+}
+
+
+// Models
+
+model User {
+  id String @id @default(cuid())
+  name String
+  initials String?
+  avatarUrl String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role String?
+  online String?
+  isOnboardCompleted Boolean @default(false)
+  orgId String?
+  organization Organization? @relation("organization", fields: [orgId], references: [id])
+  clientOrgId String?
+  clientOrganization Client? @relation(fields: [clientOrgId], references: [id])
+  projects Project[]
+  tasks Task[]
+  linkedOrgId String? @unique
+  linkedOrg Organization? @relation("linkedOrg", fields: [linkedOrgId], references: [id])
+  documentsUploaded DocumentItem[]
+  attentionItem AttentionItem[]
+  deadlines Deadline[]
+  automations Automation[]
+  accounts Account[]
+  sessions Session[]
+  managedProjects Project[] @relation("managedProjects")
+  teamMembership TeamMember?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Organization {
+  id String @id @default(cuid())
+  name String
+  initials String
+  members User[] @relation("organization")
+  owner User? @relation("linkedOrg")
+  businessType String
+  businessSize String
+  website String
+  invitedMembers Json[]
+  clients Client[]
+  tasks Task[]
+  projects Project[]
+  documents DocumentItem[]
+  contact Contact[]
+  milestones Milestone[]
+  activities ActiviyItem[]
+  attentionItems AttentionItem[]
+  deadlines Deadline[]
+  automationSummaries AutomationSummary[]
+  notificationItems NotificationItem[]
+  kpis Kpi[]
+  aiScopes AIScope[]
+  aiCitations AICitation[]
+  aiProposedActions AIProposedAction[]
+  aiConversations AIConversation[]
+  documentPages DocumentPage[]
+  automationNodes AutomationNode[]
+  automationEdges AutomationEdge[]
+  automationRun AutomationRun[]
+  automation Automation[]
+  teamMembers TeamMember[]
+  invoices Invoice[]
+  meterDataUsages UsageMeterData[]
+  integrations Integration[]
+
+  createdAt DateTime @default(now())
+}
+
+model Client {
+  id String @id @default(cuid())
+  name String
+  initials String
+  tone ToneOptions @default(blue)
+  industry String
+  website String
+  size String
+  phone String
+  address String
+  status ClientStatus
+  health Health
+  contacts Contact[]
+  linkedOrgId String?
+  linkedOrg Organization? @relation(fields: [linkedOrgId], references: [id])
+  primaryContactId String
+  accountManagerId String?
+  accountManager Contact? @relation("clientAcctManager", fields: [accountManagerId], references: [id])
+  pendingApprovals Int
+  lastActivity String
+  tags String[]
+  projects Project[]
+  documents DocumentItem[]
+  task Task[]
+  kpis Kpi[]
+  deadlines Deadline[]
+  contractValue Int
+  renewalDate String
+  summary String
+  members User[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+model Contact {
+  id String @id @default(cuid())
+  name String
+  initials String
+  title String
+  email String
+  phone String?
+  isCollaborator Boolean
+  active Boolean
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  clientAcctManager Client[] @relation("clientAcctManager")
+
+  createdAt DateTime @default(now())
+}
+
+
+model Milestone {
+  id String @id @default(cuid())
+  name String
+  date String
+  status MileStoneStatus
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id String @id @default(cuid())
+  name String
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  description String
+  managerId String?
+  manager User? @relation("managedProjects", fields: [managerId], references: [id])
+  progress Int
+  startDate DateTime @default(now())
+  deadline DateTime
+  status ProjectStatus
+  health Health
+  openTasks Int
+  blocker String?
+  budget Int
+  spent Int
+  team User[]
+  tasks Task[]
+  documents DocumentItem[]
+  collaborators String[]
+  milestones Milestone[]
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  deadlineField Deadline?
+  clientCollaboration Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id String @id @default(cuid())
+  key String
+  title String
+  description String?
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+  clientName String
+  status TaskStatus
+  assigneeId String
+  assignee User @relation(fields: [assigneeId], references: [id])
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  startDate DateTime
+  dueDate DateTime
+  comments Int
+  attachments Int
+  dependencies Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DocumentItem {
+  id String @id @default(cuid())
+  name String
+  kind DocumentItemKind
+  size String
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  projectId String
+  project Project @relation(fields: [projectId], references: [id])
+  uploadedById String
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  status DocumentStatus
+  indexed Boolean
+  clientVisible Boolean
+
+  addedAt DateTime @default(now())
+}
+
+model ActiviyItem {
+  id String @id @default(cuid())
+  actor String?
+  verb String
+  target String
+  href String?
+  timestamp String
+  context String?
+  kind ActivityKind
+  clientId String?
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model AttentionItem {
+  id String @id @default(cuid())
+  type AttentionType
+  title String
+  context String
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id])
+  urgency AttentionUrgency
+  deadline String
+  deadlineLabel String
+  action Json
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Deadline {
+  id String @id @default(cuid())
+  date String
+  clientId String
+  client Client @relation(fields: [clientId], references: [id])
+  projectId String @unique
+  project Project @relation(fields: [projectId], references: [id])
+  item String
+  kind DeadlineKind
+  ownerId String
+  owner User @relation(fields: [ownerId], references: [id])
+  status DeadlineStatus
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AutomationSummary {
+  id SingletonId @id @default(SINGLETON)
+  active Int
+  failedRuns Int
+  awaitingRetry Int
+  lastSuccess String
+  recent Json
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model NotificationItem {
+  id String @id @default(cuid())
+  category NotificationCategory
+  title String
+  summary String
+  context String
+  timestamp String
+  read Boolean
+  href String
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  
+  createdAt DateTime @default(now())
+}
+
+model Kpi {
+  id String @id @default(cuid())
+  categoryId kpiCategoryId 
+  label String 
+  value String
+  trend kpiTrend
+  sentiment kpiSentiment
+  href String
+  clientId String?
+  client Client? @relation(fields: [clientId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// AI models
+
+model AIScope {
+  id String @id @default(cuid())
+  kind AIScopeKind
+  label String
+  conversations AIConversation[]
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+model AICitation {
+  id String @id @default(cuid())
+  label String
+  kind AICitationKind
+  href String
+  detail String
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model AIProposedAction {
+  id String @id @default(cuid())
+  title String
+  description String
+  kind AIProposedActionKind
+  fields Json[]
+  state AIProposedActionState
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+}
+
+model AIConversation {
+  id String @id @default(cuid())
+  title String
+  scopeId String?
+  scope AIScope? @relation(fields: [scopeId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Documents models
+
+model DocumentVersion {
+  id String @id @default(cuid())
+  version Int
+  uploadedBy String
+  status DocumentStatus
+  note String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DocumentPage {
+  id String @id @default(cuid())
+  number Int
+  heading String
+  paragraphs String[]
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// Automations
+
+model AutomationNode {
+  id String @id @default(cuid())
+  kind AutomationNodeKind
+  type String
+  label String
+  detail String
+  position Json
+  automationId String
+  automation Automation @relation(fields: [automationId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AutomationEdge {
+  id String @id @default(cuid())
+  source String
+  target String
+  label String?
+  automationId String
+  automation Automation @relation(fields: [automationId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AutomationRun {
+  id String @id @default(cuid())
+  automationId String
+  durationMs Int
+  status AutomationRunStatus
+  trigger String
+  startedAt String
+  label Json[]
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Automation {
+  id String @id @default(cuid())
+  name String
+  description String
+  active Boolean
+  triggerLabel String
+  triggerType AutomationTriggerType
+  actionsSummary String[]
+  creatorId String
+  createdBy User @relation(fields: [creatorId], references: [id])
+  lastRun String
+  successCount Int
+  failureCount Int
+  nodes AutomationNode[]
+  edges AutomationEdge[]
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Team models
+
+model TeamMember {
+  id String @id @default(cuid())
+  member Roles
+  status TeamMemberStatus
+  activeProjects Int
+  openTasks Int
+  overdueTasks Int
+  workload Int
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  lastActive String
+  createdAt DateTime @default(now())
+}
+
+// Billing & usage models
+
+model Invoice {
+  id String @id @default(cuid())
+  number Int
+  date String
+  amount Int 
+  status InvoiceStatus
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model UsageMeterData {
+  id String @id @default(cuid())
+  categoryId PlanCategoryId
+  name String
+  monthly Int
+  annual Int
+  summary String
+  features String[]
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+// Settings model
+
+model Integration {
+  id String @id @default(cuid())
+  name String
+  description String
+  category String
+  status IntegrationStatus
+  connectedAt String?
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

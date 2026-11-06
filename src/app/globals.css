@@ -1,26 +1,411 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-deep-sapphire: 	#123A63;
+  --color-midnight-navy: #081C33;
+  --color-primary-blue: #2563A8;
+  --color-primary-gold: #C9A45C;
+  --color-porcelain: #F7F9FC;
+  --color-white: #FFFFFF;
+  --color-ink: #172333;
+  --color-slate: #637286;
+  --color-silver-slate: #DCE3EC;
+  --color-emerald: #16866A;
+  --color-amber: #D28A24;
+  --color-crimson: #C74747;
+
+  --font-noto: var(--font-noto-sans);
+  --font-geist-sans: var(--font-geist-sans);
+  --font-geist-mono: var(--font-geist-mono);
+  --font-open-sans: var(--font-open-sans);
+  --font-montserrat: var(--font-montserrat);
+  --font-work: var(--font-work-sans)
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+    /* Font roles: body (Open Sans), headings + top bar (Montserrat),
+       navigation (Work Sans), numbers/KPIs/tables (Noto Sans), shortcuts/IDs (Geist Mono) */
+    --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+    --font-nav: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-num: var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-topbar: var(--topbar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+
+    /* Status + AI tokens (themed). Use with opacity, e.g. bg-success/12 text-success */
+    --color-success: var(--success);
+    --color-warning: var(--warning);
+    --color-danger: var(--danger);
+    --color-info: var(--info);
+    --color-ai: var(--ai);
+    --color-heading: var(--heading);
+    --color-subtle: var(--subtle);
+
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+
+    --animate-shimmer: shimmer 2.2s linear infinite;
+    --animate-ai-pulse: ai-pulse 2s ease-in-out infinite;
+    --animate-caret: caret 1s steps(2, start) infinite;
+    --animate-route: route-progress 1.1s ease-in-out infinite;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/*
+  Layering (z-index): canvas 0 · sticky in-content 10 · top bar 20 · sidebar 30 ·
+  floating toolbars 40 · popovers/menus/dialogs/drawers 50 (base-ui) · toasts 50 (rendered last)
+*/
+
+:root {
+    --background: #F7F9FC; /* porcelain */
+    --foreground: #172333; /* ink */
+    --heading: #081C33; /* midnight-navy */
+    --subtle: #8A97A8;
+    --card: #FFFFFF;
+    --card-foreground: #172333;
+    --popover: #FFFFFF;
+    --popover-foreground: #172333;
+    --primary: #2563A8;
+    --primary-foreground: #FFFFFF;
+    --secondary: #EDF1F6;
+    --secondary-foreground: #172333;
+    --muted: #EEF2F7;
+    --muted-foreground: #637286; /* slate */
+    --accent: #E8EFF8;
+    --accent-foreground: #123A63;
+    --destructive: #C74747;
+    --border: #DCE3EC; /* silver-slate */
+    --input: #D3DBE6;
+    --ring: #2563A8;
+    /* Categorical series — validated (dataviz validator) against the card surface, in this order */
+    --chart-1: #2563A8;
+    --chart-2: #eb6834;
+    --chart-3: #169f6e;
+    --chart-4: #6250d6;
+    --chart-5: #123A63;
+    --radius: 0.5rem;
+    --sidebar: rgb(220 227 236 / 0.32);
+    --sidebar-foreground: #172333;
+    --sidebar-primary: #2563A8;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: rgb(8 28 51 / 0.05);
+    --sidebar-accent-foreground: #081C33;
+    --sidebar-border: rgb(8 28 51 / 0.08);
+    --sidebar-ring: #2563A8;
+    /* Top bar matches the sidebar as composited over the canvas, kept near-opaque for content scrolling beneath */
+    --topbar: rgb(238 242 247 / 0.86);
+
+    --success: #16866A;
+    --warning: #D28A24;
+    --danger: #C74747;
+    --info: #2563A8;
+    --ai: #C9A45C;
+
+    /* Glass surfaces */
+    --glass-bg: rgb(255 255 255 / 0.6);
+    --glass-bg-strong: rgb(255 255 255 / 0.82);
+    --glass-blur: 14px;
+    --glass-edge: rgb(255 255 255 / 0.7);
+    /* Elevation scale — material (hairline/highlight) and elevation (drop) are separate.
+       0: in-page sections (hairline only) · 1: grabbable/openable items at rest
+       2: hover lift, docked toolbars · 3: floats over content (menus, popovers, toasts, floating bars)
+       4: modal layer (drawers, dialogs, command search, drag overlay) */
+    --hairline: rgb(8 28 51 / 0.08);
+    --elev-1: 0 1px 2px rgb(8 28 51 / 0.06);
+    --elev-2: 0 4px 12px -4px rgb(8 28 51 / 0.14);
+    --elev-3: 0 10px 28px -10px rgb(8 28 51 / 0.22);
+    --elev-4: 0 24px 56px -18px rgb(8 28 51 / 0.32);
+
+    /* Canvas colour fields */
+    --field-1: rgb(37 99 168 / 0.09);
+    --field-2: rgb(201 164 92 / 0.08);
+    --field-3: rgb(18 58 99 / 0.05);
+    --dot: rgb(99 114 134 / 0.16);
+
+    --topbar-h: 3.5rem;
+    --ai-tint: 9%;
+    --ai-spark: 16%;
+}
+
+.dark {
+    --background: #061527;
+    --foreground: #DCE5F0;
+    --heading: #F1F5FA;
+    --subtle: #6F8098;
+    --card: #0C2039;
+    --card-foreground: #DCE5F0;
+    --popover: #0F2643;
+    --popover-foreground: #DCE5F0;
+    --primary: #3B7BC8;
+    --primary-foreground: #FFFFFF;
+    --secondary: #12304F;
+    --secondary-foreground: #DCE5F0;
+    --muted: #10294A;
+    --muted-foreground: #93A3B8;
+    --accent: #143559;
+    --accent-foreground: #E3ECF7;
+    --destructive: #E06A6A;
+    --border: rgb(220 227 236 / 0.09);
+    --input: rgb(220 227 236 / 0.14);
+    --ring: #5B9BE0;
+    --chart-1: #3987e5;
+    --chart-2: #d95926;
+    --chart-3: #199e70;
+    --chart-4: #9085e9;
+    --chart-5: #8FB4E0;
+    --sidebar: rgb(8 28 51 / 0.55);
+    --sidebar-foreground: #DCE5F0;
+    --sidebar-primary: #3B7BC8;
+    --sidebar-primary-foreground: #FFFFFF;
+    --sidebar-accent: rgb(220 227 236 / 0.06);
+    --sidebar-accent-foreground: #F1F5FA;
+    --sidebar-border: rgb(220 227 236 / 0.07);
+    --sidebar-ring: #5B9BE0;
+    --topbar: rgb(7 25 45 / 0.86);
+
+    --success: #34B892;
+    --warning: #E9A847;
+    --danger: #E77B7B;
+    --info: #5B9BE0;
+    --ai: #D9B877;
+
+    --glass-bg: rgb(14 38 68 / 0.55);
+    --glass-bg-strong: rgb(14 38 68 / 0.82);
+    --glass-blur: 18px;
+    --glass-edge: rgb(255 255 255 / 0.06);
+    --hairline: rgb(220 227 236 / 0.08);
+    --elev-1: 0 1px 2px rgb(0 0 0 / 0.3);
+    --elev-2: 0 6px 14px -6px rgb(0 0 0 / 0.45);
+    --elev-3: 0 12px 30px -10px rgb(0 0 0 / 0.55);
+    --elev-4: 0 26px 60px -18px rgb(0 0 0 / 0.65);
+
+    --field-1: rgb(37 99 168 / 0.2);
+    --field-2: rgb(201 164 92 / 0.08);
+    --field-3: rgb(18 58 99 / 0.35);
+    --dot: rgb(147 163 184 / 0.12);
+    --ai-tint: 22%;
+    --ai-spark: 12%;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    }
+  body {
+    @apply bg-background text-foreground;
+    }
+  html {
+    @apply font-sans;
+    }
+}
+
+@layer base {
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ---------- Surfaces ---------- */
+/* Shadows compose through Tailwind's --tw-shadow so focus/selection rings still work on top.
+   Material utilities set --bp-mat; elevation utilities set --bp-elev; order doesn't matter. */
+@utility app-canvas {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(64rem 42rem at -10% -10%, var(--field-1), transparent 70%),
+    radial-gradient(48rem 36rem at 105% 5%, var(--field-2), transparent 70%),
+    radial-gradient(60rem 42rem at 55% 115%, var(--field-3), transparent 70%);
+  background-attachment: fixed;
 }
+
+/* Frosted surface for selected modules, floating bars and overlays (no drop shadow by itself) */
+@utility glass {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  --bp-mat: inset 0 1px 0 0 var(--glass-edge), 0 0 0 1px var(--hairline);
+  --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+/* Near-opaque glass for overlays — pair with elev-3 / elev-4 */
+@utility glass-strong {
+  background-color: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  --bp-mat: inset 0 1px 0 0 var(--glass-edge), 0 0 0 1px var(--hairline);
+  --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+/* AI surfaces: logo gradient (blue -> sapphire) tint with a gold spark corner */
+@utility glass-ai {
+  background-color: var(--glass-bg);
+  background-image:
+    radial-gradient(24rem 12rem at 0% 0%, color-mix(in oklab, var(--ai) var(--ai-spark), transparent), transparent 70%),
+    linear-gradient(140deg, color-mix(in oklab, var(--color-primary-blue) var(--ai-tint), transparent) 0%, transparent 65%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  --bp-mat: inset 0 1px 0 0 var(--glass-edge), 0 0 0 1px var(--hairline);
+  --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+/* Solid surface for dense content — flat, hairline edge only */
+@utility surface {
+  background-color: var(--card);
+  --bp-mat: 0 0 0 1px var(--hairline);
+  --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+@utility elev-1 {
+  --bp-elev: var(--elev-1);
+  --tw-shadow: var(--bp-mat, 0 0 #0000), var(--bp-elev);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+@utility elev-2 {
+  --bp-elev: var(--elev-2);
+  --tw-shadow: var(--bp-mat, 0 0 #0000), var(--bp-elev);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+@utility elev-3 {
+  --bp-elev: var(--elev-3);
+  --tw-shadow: var(--bp-mat, 0 0 #0000), var(--bp-elev);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+@utility elev-4 {
+  --bp-elev: var(--elev-4);
+  --tw-shadow: var(--bp-mat, 0 0 #0000), var(--bp-elev);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+/* Hover/drag lift — alias of elev-2 */
+@utility lift {
+  --bp-elev: var(--elev-2);
+  --tw-shadow: var(--bp-mat, 0 0 #0000), var(--bp-elev);
+  box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+/* Miro-style canvas */
+@utility dot-grid {
+  background-image: radial-gradient(var(--dot) 1px, transparent 1.2px);
+  background-size: 18px 18px;
+}
+
+@utility tabular {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--muted-foreground) 35%, transparent) transparent;
+}
+
+@utility ai-text-shimmer {
+  background-image: linear-gradient(90deg, var(--muted-foreground) 0%, var(--muted-foreground) 35%, var(--ai) 50%, var(--muted-foreground) 65%, var(--muted-foreground) 100%);
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: var(--animate-shimmer);
+}
+
+@keyframes shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@keyframes ai-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.92); }
+}
+
+@keyframes caret {
+  to { visibility: hidden; }
+}
+
+@keyframes route-progress {
+  0% { transform: translateX(-100%) scaleX(0.3); }
+  50% { transform: translateX(10%) scaleX(0.6); }
+  100% { transform: translateX(110%) scaleX(0.3); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Automation builder (React Flow) themed by app tokens ---------- */
+.bp-flow {
+  --xy-background-color: transparent;
+  --xy-background-pattern-color: var(--dot);
+  --xy-edge-stroke: color-mix(in oklab, var(--muted-foreground) 70%, transparent);
+  --xy-edge-stroke-selected: var(--primary);
+  --xy-connectionline-stroke: var(--primary);
+  --xy-edge-label-background-color: var(--card);
+  --xy-edge-label-color: var(--muted-foreground);
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-background-color-hover: var(--muted);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-border-color: var(--border);
+  --xy-minimap-background-color: var(--card);
+  --xy-minimap-mask-background-color: color-mix(in oklab, var(--background) 60%, transparent);
+  --xy-node-boxshadow-selected: none;
+}
+.bp-flow .react-flow__controls,
+.bp-flow .react-flow__minimap { box-shadow: 0 0 0 1px var(--hairline), var(--elev-2); }
+/* Valid / invalid connection feedback while dragging an edge */
+.bp-flow .react-flow__handle.connectingto { background: var(--danger) !important; }
+.bp-flow .react-flow__handle.connectingto.valid { background: var(--success) !important; }
+.bp-flow .react-flow__edge-textbg { fill: var(--card); }
+.bp-flow .react-flow__edge-text { fill: var(--muted-foreground); font-size: 11px; }
