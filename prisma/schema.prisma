@@ -316,12 +316,24 @@ model VerificationToken {
 
 // Models
 
+model otpObject {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  password String
+  otp String
+  expiresAt DateTime
+  attempts Int @default(0)
+  createdAt DateTime @default(now())
+}
+
 model User {
   id String @id @default(cuid())
   name String
+  password String?
   initials String?
   avatarUrl String?
-  email         String?   @unique
+  email         String   @unique
   emailVerified DateTime?
   image         String?
   role String?
@@ -356,8 +368,9 @@ model Organization {
   owner User? @relation("linkedOrg")
   businessType String
   businessSize String
-  website String
+  website String?
   invitedMembers Json[]
+  invitedClient Json?
   clients Client[]
   tasks Task[]
   projects Project[]

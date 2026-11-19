@@ -3,13 +3,13 @@ import { auth } from "../auth";
 
 
 export default auth((req) => {
-    const isLoggedIn = !!req.auth
-    const isOnProduct = req.nextUrl.pathname.startsWith("/u")
+//     const isLoggedIn = !!req.auth
+//     const isOnProduct = req.nextUrl.pathname.startsWith("/u")
 
-   if (isOnProduct && !isLoggedIn) {
-        const loginUrl = new URL("/login", req.nextUrl.origin)
-        return NextResponse.redirect(loginUrl)
-    }
+//    if (isOnProduct && !isLoggedIn) {
+//         const loginUrl = new URL("/login", req.nextUrl.origin)
+//         return NextResponse.redirect(loginUrl)
+//     }
 })
 
 export const config = {

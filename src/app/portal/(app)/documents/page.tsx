@@ -1,8 +1,8 @@
-import { PortalDocuments } from '@/components/pagecomponents/PortalPages'
-import { portalDocuments } from '@/lib/mock/portal'
+import { PortalDocuments } from "@/app/components/pagecomponents/PortalPages";
+import { portalDocuments } from "@/lib/mock/portal";
 
-export const metadata = { title: 'Documents' }
+export const metadata = { title: "Documents" };
 
-const Page = () => <PortalDocuments docs={portalDocuments} />
+const Page = () => <PortalDocuments docs={portalDocuments} />;
 
-export default Page
+export default Page;

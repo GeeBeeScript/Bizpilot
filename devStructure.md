@@ -61,6 +61,8 @@ Route-level files in `/u`: `layout.tsx` (shell, reads the sidebar cookie), `load
 | `/login/verifytoken`, `/signup/verifytoken` | `VerifyTokenPage` | `?email=`; countdown, resend after 30s, change email, auto-verify; "000000" demos an invalid code; signup → `/onboarding`, login → `/u/dashboard` |
 | `/forgot-password`, `/reset-password` | `PasswordResetSection` | Request → "check inbox"; new password → success |
 | `/onboarding` | `OnboardingComp` | Organization → Team → First client → Finish |
+| `/signup/complete-profile` | `OAuthProfileSection` | First/last name step for OAuth sign-ups. `?email=&name=&provider=google\|microsoft` prefill; takes an optional `action(formData)` prop (fields `first`, `last`) returning `{ error? }`; without it, continues to `/onboarding` |
+| `/invite/[token]` | `InviteLandingComp` | Shareable invite links. Kinds: `team` (role + permission summary → `/signup?invite=&email=` or `/login?invite=`), `client` (portal owner → `/portal/login?invite=`), `contact` (project collaborator, external label). States: pending / expired / accepted / revoked + unknown token + client-side "declined". Demo tokens: `team-7f3k2`, `client-globex`, `contact-umbrella`; `?state=expired\|accepted\|revoked`. Fixtures in `lib/mock/invites.ts`, types `Invite*` in `src/types` |
 | `/portal/login` | `PortalLogin` | Invitation context; password or email link |
 | `/portal`, `/portal/approvals`, `/portal/documents`, `/portal/profile`, `/portal/projects/[projectId]` | `PortalPages` in `PortalShell` + `PortalProvider` | Client-only scope; approvals shared across pages via `usePortal()` |
 | `/admin`, `/admin/organizations`, `/admin/organizations/[orgId]`, `/admin/ai-quality` | `AdminPages` | `AppShell variant="admin"` (own nav, "Platform admin" marker, no New menu); gate server-side |
@@ -165,10 +167,12 @@ Use opacity modifiers for tints (e.g. `bg-danger/12 text-danger`). Avoid raw hex
 | `glass-ai` | Glass with blue tint + gold corner spark | AI surfaces only |
 | `elev-1` … `elev-4`, `lift` | Elevation (see 4.3.1) | Add explicitly; materials carry no drop shadow |
 | `dot-grid` | Miro-style dot canvas | Boards, AI context panel, dropzones |
-| `tabular` | Noto Sans + tabular numerals | Numbers |
+| `tabular` | Instrument Sans + tabular numerals | Numbers |
 | `ai-text-shimmer` | Gold shimmer text | AI loader stage text |
 
 Rule of thumb: glass is an accent. Dense data stays on `surface`. Never nest translucent panels.
+
+Glass is deliberately light-touch (owner request, 2026-11): `--glass-bg` is ~86% opaque (light) / 82% (dark), blur 10–12px, saturation 120%, and the canvas colour fields are faint. Keep it that way; don't raise transparency again.
 
 #### 4.3.1 Elevation (shadows)
 
@@ -188,17 +192,21 @@ Shadows compose with Tailwind rings (they write `--tw-shadow`), so `ring-*` focu
 
 | Role | Font | Class |
 |---|---|---|
-| Body / UI | Open Sans | default (`font-sans`) |
-| Headings, top bar | Montserrat | `font-heading` |
-| Navigation | Work Sans | `font-nav` |
-| Numbers / KPIs | Noto Sans | `tabular` or `font-num` |
+| Body / UI | Instrument Sans | default (`font-sans`) |
+| Headings, top bar | Poppins | `font-heading` |
+| **Any bold run** (`font-semibold`/`font-bold`, `b`, `strong`, `h1`–`h6`) | Poppins | automatic (base-layer rule in `globals.css`); `font-normal`/`font-medium` children switch back to Instrument Sans |
+| Navigation | Instrument Sans | `font-nav` |
+| Numbers / KPIs | Instrument Sans (bold figures → Poppins) | `tabular` or `font-num` |
 | Keys, IDs | Geist Mono | `font-mono` |
+
+Marketing (`.mk`) is excluded and keeps Inter. Legacy classes on the auth screens (`font-noto`, `font-open-sans`, `font-geist-sans`, `font-montserrat`, `font-work`) are remapped to this pair in `@theme`.
 
 ### 4.5 Shape, spacing and motion
 
 - `--radius: 0.5rem`; cards use `rounded-lg`, chips are the only pills.
 - Borders only where they clarify; prefer `surface` shadow and spacing.
 - Motion: micro 120–180 ms, overlays 180–260 ms, larger changes 250–400 ms. `prefers-reduced-motion` disables animations globally.
+- Filter bars and the client/project workspace tab bars scroll with the content (owner request): don't make them sticky.
 - Z-order: canvas → sticky content (10) → top bar (20) → sidebar (30) → floating bars (40) → overlays/toasts (50).
 
 ---

@@ -1,4 +1,4 @@
-import { toast } from "@/components/ui/toast";
+import { toast } from "@/app/components/ui/toast";
 
 type NotifyOptions = {
   description?: string;
@@ -7,7 +7,11 @@ type NotifyOptions = {
   timeout?: number;
 };
 
-function add(type: "success" | "info" | "warning" | "error", title: string, opts: NotifyOptions = {}) {
+function add(
+  type: "success" | "info" | "warning" | "error",
+  title: string,
+  opts: NotifyOptions = {},
+) {
   const id = toast.add({
     title,
     description: opts.description,

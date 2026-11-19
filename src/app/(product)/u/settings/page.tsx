@@ -1,14 +1,20 @@
-import SettingsPageComp from '@/components/pagecomponents/SettingsPageComp'
-import { integrations, rolePermissions, securityEvents, sessions, usage } from '@/lib/mock/organization'
+import SettingsPageComp from "@/app/components/pagecomponents/SettingsPageComp";
+import {
+  integrations,
+  rolePermissions,
+  securityEvents,
+  sessions,
+  usage,
+} from "@/lib/mock/organization";
 
-export const metadata = { title: 'Settings' }
+export const metadata = { title: "Settings" };
 
-const SettingsPage = async ({ searchParams }: PageProps<'/u/settings'>) => {
-  const { tab } = await searchParams
-  const ai = usage.find((u) => u.id === 'ai')!
+const SettingsPage = async ({ searchParams }: PageProps<"/u/settings">) => {
+  const { tab } = await searchParams;
+  const ai = usage.find((u) => u.id === "ai")!;
   return (
     <SettingsPageComp
-      key={(tab as string | undefined) ?? 'general'}
+      key={(tab as string | undefined) ?? "general"}
       initialSection={tab as string | undefined}
       permissions={rolePermissions}
       sessions={sessions}
@@ -16,7 +22,7 @@ const SettingsPage = async ({ searchParams }: PageProps<'/u/settings'>) => {
       integrations={integrations}
       credits={{ used: ai.used, limit: ai.limit, resetsAt: ai.resetsAt }}
     />
-  )
-}
+  );
+};
 
-export default SettingsPage
+export default SettingsPage;

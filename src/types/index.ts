@@ -381,3 +381,32 @@ export type Integration = {
 };
 
 export type Session = { id: string; device: string; location: string; lastActive: string; current?: boolean };
+
+/* ---------- Invitations (shareable links) ---------- */
+
+/** team: internal member · client: a client company's portal owner · contact: external collaborator on specific projects */
+export type InviteKind = "team" | "client" | "contact";
+
+export type InviteState = "pending" | "expired" | "accepted" | "revoked";
+
+export type Invite = {
+  token: string;
+  kind: InviteKind;
+  state: InviteState;
+  /** The address the link was sent to; signing in with another address shows a mismatch notice */
+  email: string;
+  inviter: Person;
+  organization: Organization;
+  sentAt: string;
+  expiresAt: string;
+  /** team invites */
+  role?: Role;
+  /** client + contact invites */
+  client?: Pick<Client, "id" | "name" | "initials" | "tone">;
+  /** contact invites: the projects this person can see */
+  projects?: { id: string; name: string }[];
+  /** contact invites: what the collaborator may do */
+  permissions?: string[];
+  /** Optional note the inviter added */
+  message?: string;
+};

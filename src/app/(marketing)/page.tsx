@@ -1,7 +1,9 @@
-import { HomePage } from '@/components/marketing/HomeSections'
+import { HomePage } from "@/app/components/marketing/HomeSections";
 
-export const metadata = { title: { absolute: 'BizPilot · The client workspace built for AI' } }
+export const metadata = {
+  title: { absolute: "BizPilot · The client workspace built for AI" },
+};
 
-const Page = () => <HomePage />
+const Page = () => <HomePage />;
 
-export default Page
+export default Page;

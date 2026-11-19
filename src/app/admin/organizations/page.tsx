@@ -1,8 +1,8 @@
-import { AdminOrganizations } from '@/components/pagecomponents/AdminPages'
-import { adminOrgs } from '@/lib/mock/admin'
+import { AdminOrganizations } from "@/app/components/pagecomponents/AdminPages";
+import { adminOrgs } from "@/lib/mock/admin";
 
-export const metadata = { title: 'Organizations' }
+export const metadata = { title: "Organizations" };
 
-const Page = () => <AdminOrganizations orgs={adminOrgs} />
+const Page = () => <AdminOrganizations orgs={adminOrgs} />;
 
-export default Page
+export default Page;

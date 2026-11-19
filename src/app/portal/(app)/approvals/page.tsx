@@ -1,7 +1,7 @@
-import { PortalApprovals } from '@/components/pagecomponents/PortalPages'
+import { PortalApprovals } from "@/app/components/pagecomponents/PortalPages";
 
-export const metadata = { title: 'Approvals' }
+export const metadata = { title: "Approvals" };
 
-const Page = () => <PortalApprovals />
+const Page = () => <PortalApprovals />;
 
-export default Page
+export default Page;

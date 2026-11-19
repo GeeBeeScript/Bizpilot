@@ -1,11 +1,15 @@
-import NotificationsPageComp from '@/components/pagecomponents/NotificationsPageComp'
-import { notifications } from '@/lib/mock/activity'
+import NotificationsPageComp from "@/app/components/pagecomponents/NotificationsPageComp";
+import { notifications } from "@/lib/mock/activity";
 
-export const metadata = { title: 'Notifications' }
+export const metadata = { title: "Notifications" };
 
-const NotificationsPage = async ({ searchParams }: PageProps<'/u/notifications'>) => {
-  const { state } = await searchParams
-  return <NotificationsPageComp items={state === 'empty' ? [] : notifications} />
-}
+const NotificationsPage = async ({
+  searchParams,
+}: PageProps<"/u/notifications">) => {
+  const { state } = await searchParams;
+  return (
+    <NotificationsPageComp items={state === "empty" ? [] : notifications} />
+  );
+};
 
-export default NotificationsPage
+export default NotificationsPage;

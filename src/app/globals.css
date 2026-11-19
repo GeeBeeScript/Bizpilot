@@ -18,21 +18,23 @@
   --color-amber: #D28A24;
   --color-crimson: #C74747;
 
-  --font-noto: var(--font-noto-sans);
-  --font-geist-sans: var(--font-geist-sans);
+  /* Legacy family names (used by auth screens) now point at the product pair */
+  --font-noto: var(--font-instrument-sans);
+  --font-geist-sans: var(--font-instrument-sans);
   --font-geist-mono: var(--font-geist-mono);
-  --font-open-sans: var(--font-open-sans);
-  --font-montserrat: var(--font-montserrat);
-  --font-work: var(--font-work-sans)
+  --font-open-sans: var(--font-instrument-sans);
+  --font-montserrat: var(--font-poppins);
+  --font-work: var(--font-instrument-sans);
+  --font-instrument: var(--font-instrument-sans)
 }
 
 @theme inline {
-    /* Font roles: body (Open Sans), headings + top bar (Montserrat),
-       navigation (Work Sans), numbers/KPIs/tables (Noto Sans), shortcuts/IDs (Geist Mono) */
-    --font-sans: var(--font-open-sans), ui-sans-serif, system-ui, sans-serif;
-    --font-heading: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
-    --font-nav: var(--font-work-sans), ui-sans-serif, system-ui, sans-serif;
-    --font-num: var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+    /* Font roles: display + every bold run (Poppins), body/navigation/numbers (Instrument Sans),
+       shortcuts/IDs (Geist Mono). Marketing (.mk) sets its own type. */
+    --font-sans: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-heading: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+    --font-nav: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
+    --font-num: var(--font-instrument-sans), ui-sans-serif, system-ui, sans-serif;
     --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
     --color-sidebar-ring: var(--sidebar-ring);
@@ -124,7 +126,7 @@
     --chart-4: #6250d6;
     --chart-5: #123A63;
     --radius: 0.5rem;
-    --sidebar: rgb(220 227 236 / 0.32);
+    --sidebar: rgb(220 227 236 / 0.5);
     --sidebar-foreground: #172333;
     --sidebar-primary: #2563A8;
     --sidebar-primary-foreground: #FFFFFF;
@@ -133,7 +135,7 @@
     --sidebar-border: rgb(8 28 51 / 0.08);
     --sidebar-ring: #2563A8;
     /* Top bar matches the sidebar as composited over the canvas, kept near-opaque for content scrolling beneath */
-    --topbar: rgb(238 242 247 / 0.86);
+    --topbar: rgb(234 238 244 / 0.96);
 
     --success: #16866A;
     --warning: #D28A24;
@@ -142,10 +144,10 @@
     --ai: #C9A45C;
 
     /* Glass surfaces */
-    --glass-bg: rgb(255 255 255 / 0.6);
-    --glass-bg-strong: rgb(255 255 255 / 0.82);
-    --glass-blur: 14px;
-    --glass-edge: rgb(255 255 255 / 0.7);
+    --glass-bg: rgb(255 255 255 / 0.86);
+    --glass-bg-strong: rgb(255 255 255 / 0.95);
+    --glass-blur: 10px;
+    --glass-edge: rgb(255 255 255 / 0.5);
     /* Elevation scale — material (hairline/highlight) and elevation (drop) are separate.
        0: in-page sections (hairline only) · 1: grabbable/openable items at rest
        2: hover lift, docked toolbars · 3: floats over content (menus, popovers, toasts, floating bars)
@@ -157,13 +159,13 @@
     --elev-4: 0 24px 56px -18px rgb(8 28 51 / 0.32);
 
     /* Canvas colour fields */
-    --field-1: rgb(37 99 168 / 0.09);
-    --field-2: rgb(201 164 92 / 0.08);
-    --field-3: rgb(18 58 99 / 0.05);
+    --field-1: rgb(37 99 168 / 0.05);
+    --field-2: rgb(201 164 92 / 0.045);
+    --field-3: rgb(18 58 99 / 0.03);
     --dot: rgb(99 114 134 / 0.16);
 
     --topbar-h: 3.5rem;
-    --ai-tint: 9%;
+    --ai-tint: 6%;
     --ai-spark: 16%;
 }
 
@@ -193,7 +195,7 @@
     --chart-3: #199e70;
     --chart-4: #9085e9;
     --chart-5: #8FB4E0;
-    --sidebar: rgb(8 28 51 / 0.55);
+    --sidebar: rgb(8 28 51 / 0.8);
     --sidebar-foreground: #DCE5F0;
     --sidebar-primary: #3B7BC8;
     --sidebar-primary-foreground: #FFFFFF;
@@ -201,7 +203,7 @@
     --sidebar-accent-foreground: #F1F5FA;
     --sidebar-border: rgb(220 227 236 / 0.07);
     --sidebar-ring: #5B9BE0;
-    --topbar: rgb(7 25 45 / 0.86);
+    --topbar: rgb(8 27 49 / 0.96);
 
     --success: #34B892;
     --warning: #E9A847;
@@ -209,9 +211,9 @@
     --info: #5B9BE0;
     --ai: #D9B877;
 
-    --glass-bg: rgb(14 38 68 / 0.55);
-    --glass-bg-strong: rgb(14 38 68 / 0.82);
-    --glass-blur: 18px;
+    --glass-bg: rgb(14 38 68 / 0.82);
+    --glass-bg-strong: rgb(14 38 68 / 0.94);
+    --glass-blur: 12px;
     --glass-edge: rgb(255 255 255 / 0.06);
     --hairline: rgb(220 227 236 / 0.08);
     --elev-1: 0 1px 2px rgb(0 0 0 / 0.3);
@@ -219,9 +221,9 @@
     --elev-3: 0 12px 30px -10px rgb(0 0 0 / 0.55);
     --elev-4: 0 26px 60px -18px rgb(0 0 0 / 0.65);
 
-    --field-1: rgb(37 99 168 / 0.2);
-    --field-2: rgb(201 164 92 / 0.08);
-    --field-3: rgb(18 58 99 / 0.35);
+    --field-1: rgb(37 99 168 / 0.12);
+    --field-2: rgb(201 164 92 / 0.05);
+    --field-3: rgb(18 58 99 / 0.22);
     --dot: rgb(147 163 184 / 0.12);
     --ai-tint: 22%;
     --ai-spark: 12%;
@@ -237,6 +239,18 @@
   html {
     @apply font-sans;
     }
+}
+
+/* Bold and semibold text uses the display face everywhere except the marketing site.
+   Lighter weights nested inside a bold run switch back to the text face.
+   Base layer, so explicit family utilities (font-mono, tabular, font-heading…) still win. */
+@layer base {
+  :where(h1, h2, h3, h4, h5, h6, b, strong, .font-semibold, .font-bold, .font-extrabold, .font-black):not(.mk, .mk *) {
+    font-family: var(--font-heading);
+  }
+  :where(.font-normal, .font-medium, .font-light):not(.mk, .mk *) {
+    font-family: var(--font-sans);
+  }
 }
 
 @layer base {
@@ -261,8 +275,8 @@
 /* Frosted surface for selected modules, floating bars and overlays (no drop shadow by itself) */
 @utility glass {
   background-color: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
   --bp-mat: inset 0 1px 0 0 var(--glass-edge), 0 0 0 1px var(--hairline);
   --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
   box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
@@ -271,8 +285,8 @@
 /* Near-opaque glass for overlays — pair with elev-3 / elev-4 */
 @utility glass-strong {
   background-color: var(--glass-bg-strong);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
   --bp-mat: inset 0 1px 0 0 var(--glass-edge), 0 0 0 1px var(--hairline);
   --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
   box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
@@ -284,8 +298,8 @@
   background-image:
     radial-gradient(24rem 12rem at 0% 0%, color-mix(in oklab, var(--ai) var(--ai-spark), transparent), transparent 70%),
     linear-gradient(140deg, color-mix(in oklab, var(--color-primary-blue) var(--ai-tint), transparent) 0%, transparent 65%);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
   --bp-mat: inset 0 1px 0 0 var(--glass-edge), 0 0 0 1px var(--hairline);
   --tw-shadow: var(--bp-mat), var(--bp-elev, 0 0 #0000);
   box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
@@ -335,6 +349,11 @@
 @utility tabular {
   font-family: var(--font-num);
   font-variant-numeric: tabular-nums;
+}
+
+/* Bold figures (KPI values, totals) follow the display face too */
+@layer utilities {
+  .tabular:is(.font-semibold, .font-bold) { font-family: var(--font-heading); }
 }
 
 @utility scrollbar-none {

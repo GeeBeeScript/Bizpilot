@@ -59,3 +59,11 @@ export function greeting(date = new Date()) {
   if (h < 18) return "Good afternoon";
   return "Good evening";
 }
+
+/** "Expires today", "Expires tomorrow", "Expires in 6 days" */
+export function expiresLabel(iso: string) {
+  const diff = differenceInCalendarDays(new Date(iso), new Date());
+  if (diff <= 0) return "Expires today";
+  if (diff === 1) return "Expires tomorrow";
+  return `Expires in ${diff} days`;
+}

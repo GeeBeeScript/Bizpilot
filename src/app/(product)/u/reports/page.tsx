@@ -1,7 +1,7 @@
-import ReportsPageComp from '@/components/pagecomponents/ReportsPageComp'
-import * as R from '@/lib/mock/reports'
+import ReportsPageComp from "@/app/components/pagecomponents/ReportsPageComp";
+import * as R from "@/lib/mock/reports";
 
-export const metadata = { title: 'Reports' }
+export const metadata = { title: "Reports" };
 
 const ReportsPage = () => (
   <ReportsPageComp
@@ -16,6 +16,6 @@ const ReportsPage = () => (
     aiGenerationsByWeek={R.aiGenerationsByWeek}
     aiStats={R.aiStats}
   />
-)
+);
 
-export default ReportsPage
+export default ReportsPage;

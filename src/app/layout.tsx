@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { geistSans, notoSans, geistMono, openSans, montserrat, workSans, inter } from "./ui/fonts";
-import AppProviders from "@/components/providers/AppProviders";
+import { poppins, instrumentSans, geistMono, inter } from "./ui/fonts";
+import AppProviders from "@/app/components/providers/AppProviders";
 
 export const metadata: Metadata = {
   title: { default: "BizPilot", template: "%s · BizPilot" },
@@ -13,7 +13,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${notoSans.variable} ${geistMono.variable} ${openSans.variable} ${montserrat.variable} ${workSans.variable} ${inter.variable} h-full antialiased`}
+      className={`${poppins.variable} ${instrumentSans.variable} ${geistMono.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AppProviders>{children}</AppProviders>
