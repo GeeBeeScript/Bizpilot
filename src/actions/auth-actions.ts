@@ -1,16 +1,17 @@
 "use server";
 
-import z from "zod";
-import { auth, signIn, signOut } from "../../auth";
+import z, { string } from "zod";
+import { auth, signIn, signOut, unstable_update } from "../../auth";
 import prisma from "@/lib/prisma";
-import { generateOTP, hashOTP, hashPassword, verifyOTP, verifyToken } from "@/lib/password";
+import { generateOTP, hashOTP, hashPassword, inviteTokens, verifyOTP, verifyToken } from "@/lib/password";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { appPaths, authPaths, paths } from "@/app/paths";
 import { randomInt } from "node:crypto";
 import { onboardPayload } from "@/app/components/pagecomponents/OnboardingComp";
 import { getInitials } from "@/lib/utilitymethods";
-import { Prisma } from "@/app/generated/prisma/client";
+import { InvitationStatus, InvitationType, Kind, MembershipStatus, Prisma, Roles } from "@/app/generated/prisma/client";
+import { otpVerification } from "@/server/auth/otp";
 
 const signupSchema = z.object({
   first: z.string().min(2),
@@ -27,6 +28,27 @@ const loginSchema = z.object({
 const otpSchema = z.object({
   otp: z.number().min(5),
 });
+
+const onboardPayloadSchema = z.object({
+  name: z.string().min(2).max(80),
+  type: z.string().max(50),
+  size: z.string().max(20),
+  website: z.string().max(100).optional(),
+  invitedMembers: z.array(
+    z.object({
+      email: z.email().max(100),
+      role: z.string().min(2).max(100),
+    })
+  ).max(20).optional(),
+  invitedClient: z.object({
+    companyName: z.string().min(2).max(100),
+    contactName: z.string().min(2).max(100),
+    contactEmail: z.email().max(100),
+    acctManager: z.string().max(100).min(2)
+  }).optional()
+})
+
+
 
 export const googleSignIn = async () => {
   await signIn("google", {
@@ -66,36 +88,6 @@ export const startEmailPasswordSignup = async (formData: FormData) => {
   redirect(authPaths.signupVerifyToken());
 };
 
-export const otpVerification = async (otp: string) => {
-  const cookieStore = await cookies();
-  const otpHash = cookieStore.get("otp-hash")?.value;
-  if (!otpHash) {
-    return { error: "OTP was not sent" };
-  }
-
-  const otpIsValid = verifyOTP(otp, otpHash);
-  if (!otpIsValid) {
-    return { error: "Wrong code" };
-  }
-
-  try {
-    const otpObj = await prisma.otpObject.findFirst({
-      where: {
-        otp: otpHash,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-    });
-    if (!otpObj) {
-      return { error: "OTP is expired" };
-    }
-    return otpObj
-  } catch (error) {
-    console.log(error);
-    return { error: "There was an error during verification" };
-  }
-};
 
 export const completeSignup = async (otpValue: number) => {
   const parsedSchema = otpSchema.safeParse({
@@ -254,7 +246,15 @@ export async function checkCookies() {
   console.log("Current auth.js session, ", authVal?.user);
 }
 
-export async function onboard({ name, type, size, website, invitedMembers, invitedClient }: onboardPayload) {
+export async function onboard(payload: onboardPayload) {
+  const parsedPayload = onboardPayloadSchema.safeParse(payload)
+  
+  if (!parsedPayload.success) {
+    return { error: "Kindly verify your input" }
+  }
+
+  const { name, type, size, website, invitedMembers, invitedClient } = parsedPayload.data
+
   const session = await auth()
   if (!session?.user) {
     return redirect(authPaths.loginPage())
@@ -270,39 +270,79 @@ export async function onboard({ name, type, size, website, invitedMembers, invit
   }
 
   try {
-    const org = await prisma.organization.create({
+    const result = await prisma.$transaction(async (tx) => {
+      const org = await tx.organization.create({
       data: {
         name: name,
         initials: getInitials(name),
-        members: {
-          connect: [
-            { id: user.id }
-          ]
-        },
-        owner: {
-          connect: {id: user.id} 
-        },
         businessType: type,
         businessSize: size,
         website: website ?? "",
-        invitedMembers: invitedMembers as Prisma.InputJsonValue[],
-        invitedClient: invitedClient ? invitedClient as Prisma.InputJsonValue : Prisma.JsonNull,
       }
     })
-    console.log("ret")
-
-    if (!org) {
-      return { error: "There was an error in creating your organization" }
+    const createMembership = await tx.membership.create({
+      data: {
+        user: {
+          connect: { id: user.id }
+        },
+        org: {
+          connect: { id: org.id }
+        },
+        role: Roles.owner,
+        status: MembershipStatus.active,
+        kind: Kind.internal,
+      } 
+    })
+    if (invitedMembers?.length) {
+      const sevenDaysFromCurrent = new Date(Date.now() + (1000 * 60 * 60 * 24 * 7))
+      const membersArr = invitedMembers.map((member) => ({ inviterId: user.id, orgId: org.id, email: member.email, kind: Kind.internal, roles: Roles.member, invitationType: InvitationType.team_member, ...inviteTokens(), status: InvitationStatus.pending, expiresAt: sevenDaysFromCurrent }))
+      const memberInvite = await tx.invitation.createMany({
+        data: membersArr
+      })
     }
-
-    const updateIsOnboarded = await prisma.user.update({
+    if (invitedClient) {
+      const { acctManager, companyName, contactName, contactEmail } = invitedClient
+      const sevenDaysFromCurrent = new Date(Date.now() + (1000 * 60 * 60 * 24 * 7))
+      const { token, tokenHash } = inviteTokens()
+      const clientInvite = await tx.invitation.create({
+        data: {
+          inviter: {
+            connect: { id: user.id }
+          },
+          org: {
+            connect: { id: org.id }
+          },
+          email: contactEmail,
+          manager: {
+            connect: { id: user.id }
+          },
+          clientPayload: [companyName, contactName],
+          kind: Kind.client,
+          roles: Roles.manager,
+          tokenHash,
+          status: InvitationStatus.pending,
+          expiresAt: sevenDaysFromCurrent,
+        }
+      })
+    }
+    const updateIsOnboarded = await tx.user.update({
       where: { id: user.id },
       data: {
         isOnboardCompleted: true,
       }
     })
+    
 
-    return org
+    return { orgId: org.id, userId: user.id,  }
+    })
+    console.log("ret")
+
+    if (!result) {
+      return { error: "There was an error in creating your organization" }
+    }
+
+    await unstable_update({})
+    return result
   } catch(error) {
     console.log(error)
     return { error: "There was an error creating your Organization" }

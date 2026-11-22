@@ -8,6 +8,9 @@ export const metadata = { title: "Set up your workspace" };
 
 const OnboardingPage = async () => {
   const session = await auth();
+  if (!session?.user?.id) {
+    redirect(authPaths.signupPage())
+  }
   const user = await prisma.user.findUnique({
     where: { id: session?.user?.id }
   })

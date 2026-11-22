@@ -231,13 +231,39 @@ enum Roles {
   owner
   admin
   manager
-  employee
+  member
+}
+
+enum Kind {
+  internal
+  client
+}
+
+enum MembershipStatus {
+  active
+  inactive
 }
 
 enum TeamMemberStatus {
   active
   invited
   deactivated
+}
+
+enum InvitationType {
+  team_member
+  team_manager
+  client_staff
+  client_manager
+  contact
+  guest
+}
+
+enum InvitationStatus {
+  not_sent
+  pending
+  accepted
+  rejected
 }
 
 // Billing & usage enums
@@ -339,14 +365,10 @@ model User {
   role String?
   online String?
   isOnboardCompleted Boolean @default(false)
-  orgId String?
-  organization Organization? @relation("organization", fields: [orgId], references: [id])
   clientOrgId String?
   clientOrganization Client? @relation(fields: [clientOrgId], references: [id])
   projects Project[]
   tasks Task[]
-  linkedOrgId String? @unique
-  linkedOrg Organization? @relation("linkedOrg", fields: [linkedOrgId], references: [id])
   documentsUploaded DocumentItem[]
   attentionItem AttentionItem[]
   deadlines Deadline[]
@@ -354,6 +376,9 @@ model User {
   accounts Account[]
   sessions Session[]
   managedProjects Project[] @relation("managedProjects")
+  clientManagerInvitations Invitation[] @relation("clientManager")
+  membership Membership[]
+  invitations Invitation[]
   teamMembership TeamMember?
 
   createdAt DateTime @default(now())
@@ -364,13 +389,11 @@ model Organization {
   id String @id @default(cuid())
   name String
   initials String
-  members User[] @relation("organization")
-  owner User? @relation("linkedOrg")
   businessType String
   businessSize String
   website String?
-  invitedMembers Json[]
-  invitedClient Json?
+  memberships Membership[]
+  invitations Invitation[]
   clients Client[]
   tasks Task[]
   projects Project[]
@@ -398,6 +421,47 @@ model Organization {
   integrations Integration[]
 
   createdAt DateTime @default(now())
+}
+
+model Membership {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role Roles
+  status MembershipStatus
+  kind Kind
+  clientId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, orgId])
+  @@index([orgId])
+}
+
+model Invitation {
+  id String @id @default(cuid())
+  inviterId String
+  inviter User @relation(fields: [inviterId], references: [id])
+  orgId String
+  org Organization @relation(fields: [orgId], references: [id])
+  email String
+  managerId String?
+  manager User? @relation("clientManager", fields: [managerId], references: [id])
+  clientPayload String[]
+  kind Kind
+  roles Roles
+  tokenHash String @unique
+  status InvitationStatus
+  expiresAt DateTime
+  acceptedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId])
 }
 
 model Client {

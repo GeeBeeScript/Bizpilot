@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { createHmac, randomInt, timingSafeEqual } from "crypto";
+import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from "crypto";
 
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 12);
@@ -31,4 +31,10 @@ export function verifyOTP(otp: string, storedHash: string) {
     inputHash.length === savedHash.length &&
     timingSafeEqual(inputHash, savedHash)
   );
+}
+
+export function inviteTokens () {
+  const token = randomBytes(32).toString("base64url")
+  const tokenHash = createHash("sha256").update(token).digest("hex")
+  return { token, tokenHash }
 }
