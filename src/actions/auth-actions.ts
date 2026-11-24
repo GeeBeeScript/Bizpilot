@@ -11,7 +11,7 @@ import { randomInt } from "node:crypto";
 import { onboardPayload } from "@/app/components/pagecomponents/OnboardingComp";
 import { getInitials } from "@/lib/utilitymethods";
 import { InvitationStatus, InvitationType, Kind, MembershipStatus, Prisma, Roles } from "@/app/generated/prisma/client";
-import { otpVerification } from "@/server/auth/otp";
+import { addOTPandSetCookie, otpVerification } from "@/server/auth/otp";
 
 const signupSchema = z.object({
   first: z.string().min(2),
@@ -196,46 +196,6 @@ export const completeLogin = async (otpValue: string) => {
   redirect(paths.product.productPage())
 }
 
-export const addOTPandSetCookie = async (email: string, name?: string, hashedPassword?: string) => {
-  const otp = generateOTP()
-  console.log("otp--- ", otp)
-  const hashedOTP = hashOTP(otp)
-  console.log("-- ", email)
-  try {
-    const addOTP = await prisma.otpObject.upsert({
-    where: { email: email },
-    update: {
-      otp: hashedOTP,
-      expiresAt: new Date(Date.now() + 2 * 60 * 1000),
-      attempts: {
-        increment: 1
-      },
-    },
-    create: {
-      name: name ?? "",
-      email: email,
-      password: hashedPassword ?? "",
-      otp: hashedOTP,
-      expiresAt: new Date(Date.now() + 2 * 60 * 1000)
-    },
-  })
-  console.log("addOTP -", addOTP)
-  const cookieStore = await cookies()
-  cookieStore.set("otp-hash", hashedOTP, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 2,
-  })
-
-
-  return addOTP
-  } catch (error) {
-    console.error("otpcookie ", error)
-    return { error: error }
-  }
-}
-
 export async function checkCookies() {
   const cookieStore = await cookies();
   const authVal = await auth();
@@ -269,8 +229,10 @@ export async function onboard(payload: onboardPayload) {
     redirect(paths.product.productPage())
   }
 
+  let result
+
   try {
-    const result = await prisma.$transaction(async (tx) => {
+    result = await prisma.$transaction(async (tx) => {
       const org = await tx.organization.create({
       data: {
         name: name,
@@ -296,8 +258,9 @@ export async function onboard(payload: onboardPayload) {
     if (invitedMembers?.length) {
       const sevenDaysFromCurrent = new Date(Date.now() + (1000 * 60 * 60 * 24 * 7))
       const membersArr = invitedMembers.map((member) => ({ inviterId: user.id, orgId: org.id, email: member.email, kind: Kind.internal, roles: Roles.member, invitationType: InvitationType.team_member, ...inviteTokens(), status: InvitationStatus.pending, expiresAt: sevenDaysFromCurrent }))
+      const membersArrTokensRemoved = membersArr.map(({ token, ...rest }) => rest)
       const memberInvite = await tx.invitation.createMany({
-        data: membersArr
+        data: membersArrTokensRemoved
       })
     }
     if (invitedClient) {
@@ -335,19 +298,14 @@ export async function onboard(payload: onboardPayload) {
 
     return { orgId: org.id, userId: user.id,  }
     })
-    console.log("ret")
-
-    if (!result) {
-      return { error: "There was an error in creating your organization" }
-    }
-
-    await unstable_update({})
-    return result
+  
   } catch(error) {
     console.log(error)
     return { error: "There was an error creating your Organization" }
   }
 
+  await unstable_update({ user: { activeOrgId: result.orgId } })
+  redirect(paths.product.productPage())
 }
 
 export const validateOnboardNavigation = async () => {

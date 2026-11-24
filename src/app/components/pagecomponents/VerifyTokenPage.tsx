@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CircleCheck, Loader2, OctagonX } from "lucide-react";
 import AuthNavigation from "../elements/AuthNav";
 import { notify } from "@/lib/notify";
-import { completeLogin, completeSignup, otpVerification } from "@/actions/auth-actions";
+import { completeLogin, completeSignup } from "@/actions/auth-actions";
 
 const CODE_TTL = 2 * 60;
 const RESEND_AFTER = 30;

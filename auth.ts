@@ -78,30 +78,46 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
     },
     async jwt({ token, user, trigger, session }) {
       if (user) token.id = user.id;
-      const shouldLoad = trigger === "signIn" || trigger === "signUp" || trigger === "update"
-      if (shouldLoad && token.id) {
-        const requestedOrgId = trigger === "update" ? session?.activeOrgId : undefined
-        
-        const m = await prisma.membership.findFirst({
-          where: {
-            userId: token.id,
-            status: "active",
-            ...(requestedOrgId ? { orgId: requestedOrgId } : {} ),
-          },
-          orderBy: { createdAt: "asc" },
-          select: { orgId: true, role: true, kind: true }
-        })
+      if (!token.id) token
 
-        if (m) {
-          token.activeOrgId = m.orgId,
-          token.role = m.role,
-          token.kind = m.kind
-        }
+      const requested: string | undefined = trigger === "update" ? session?.user?.activeOrgId : undefined
+      const shouldLoad = trigger === "signIn" || trigger === "signUp" || trigger === "update" || !token.activeOrgId
+
+      if (!shouldLoad) return token
+
+      const select = { orgId: true, role: true, kind: true } as const
+      const findActive = async (orgId: string) => prisma.membership.findFirst({ where: { userId: token.id!, orgId, status: "active" }, select })
+      
+      let membership = null
+      if (requested) {
+        membership = await findActive(requested)
+        if (!membership) return token
+      } else {
+        if (token.activeOrgId) membership = await findActive(token.activeOrgId)
+        if (!membership) membership = await prisma.membership.findFirst({
+          where: { userId: token.id, status: "active" },
+          orderBy: [{ kind: "asc"}, { createdAt: "asc" }],
+          select
+        })
       }
+
+      if (membership) {
+        token.activeOrgId = membership.orgId,
+        token.role = membership.role,
+        token.kind = membership.kind
+      } else {
+        delete token.activeOrgId;
+        delete token.role;
+        delete token.kind;
+      }
+
+      const nextFiveMinutes = 1000 * 60 * 5
+      setInterval(() => token.checkedAt = new Date(Date.now()) , nextFiveMinutes)
       return token
     },
+
     async session({ session, token }) {
-      session.user.id = token.id
+      if (token.id) session.user.id = token.id
       session.user.activeOrgId = token.activeOrgId
       session.user.role = token.role
       session.user.kind = token.kind

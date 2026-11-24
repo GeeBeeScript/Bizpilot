@@ -1,4 +1,4 @@
-import { verifyOTP } from "@/lib/password";
+import { hashOTP, verifyOTP, generateOTP } from "@/lib/password";
 import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import "server-only"
@@ -33,3 +33,43 @@ export const otpVerification = async (otp: string) => {
     return { error: "There was an error during verification" };
   }
 };
+
+export const addOTPandSetCookie = async (email: string, name?: string, hashedPassword?: string) => {
+  const otp = generateOTP()
+  console.log("otp--- ", otp)
+  const hashedOTP = hashOTP(otp)
+  console.log("-- ", email)
+  try {
+    const addOTP = await prisma.otpObject.upsert({
+    where: { email: email },
+    update: {
+      otp: hashedOTP,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000),
+      attempts: {
+        increment: 1
+      },
+    },
+    create: {
+      name: name ?? "",
+      email: email,
+      password: hashedPassword ?? "",
+      otp: hashedOTP,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000)
+    },
+  })
+  console.log("addOTP -", addOTP)
+  const cookieStore = await cookies()
+  cookieStore.set("otp-hash", hashedOTP, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: 60 * 2,
+  })
+
+
+  return addOTP
+  } catch (error) {
+    console.error("otpcookie ", error)
+    return { error: error }
+  }
+}
