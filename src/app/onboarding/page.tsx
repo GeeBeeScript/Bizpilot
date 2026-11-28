@@ -17,9 +17,9 @@ const OnboardingPage = async () => {
   if (!user) {
     redirect(authPaths.signupPage())
   }
-  if (user.isOnboardCompleted) {
-    redirect(paths.product.productPage())
-  }
+  // if (user.isOnboardCompleted) {
+  //   redirect(paths.product.productPage())
+  // }
   return <OnboardingComp firstName={session?.user?.name ?? ""} />;
 };
 

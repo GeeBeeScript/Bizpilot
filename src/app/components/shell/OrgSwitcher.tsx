@@ -9,11 +9,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/app/components/ui/dropdown-menu";
-import { Check, ChevronsUpDown, Plus, Settings } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2, Plus, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { currentOrg, organizations } from "@/lib/mock/people";
 import { notify } from "@/lib/notify";
+import { useViewer } from "@/context/viewerContext";
+import { useTransition } from "react";
+import { switchOrg } from "@/actions/org-actions";
 
 const OrgTile = ({
   initials,
@@ -32,9 +35,21 @@ const OrgTile = ({
   </span>
 );
 
+const roleLabel = (role: string) => role[0]!.toUpperCase() + role.slice(1)
+
 /** Organization/workspace selector (§4.1 header). Present but intentionally understated. */
 export const OrgSwitcher = ({ collapsed }: { collapsed: boolean }) => {
   const router = useRouter();
+  const { activeOrg, orgs } = useViewer()
+  const [pending, startTransition] = useTransition()
+
+  const select = (orgId: string) => {
+    if (orgId === activeOrg.id || pending) return
+    startTransition(async () => {
+      const result = await switchOrg(orgId)
+      if (result?.error) notify.error(result.error)
+    })
+  }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -44,17 +59,17 @@ export const OrgSwitcher = ({ collapsed }: { collapsed: boolean }) => {
               "flex w-full items-center gap-2.5 rounded-md p-1.5 text-left transition-colors duration-150 outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring/50",
               collapsed && "justify-center",
             )}
-            aria-label={`Organization: ${currentOrg.name}`}
+            aria-label={`Organization: ${activeOrg.name}`}
           >
-            <OrgTile initials={currentOrg.initials} />
+            <OrgTile initials={activeOrg.initials} />
             {!collapsed && (
               <>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-sm font-medium text-sidebar-accent-foreground">
-                    {currentOrg.name}
+                    {activeOrg.name}
                   </span>
                   <span className="block text-[0.7rem] text-muted-foreground">
-                    {currentOrg.plan} plan
+                    {roleLabel(activeOrg.role)} plan
                   </span>
                 </span>
                 <ChevronsUpDown
@@ -73,11 +88,11 @@ export const OrgSwitcher = ({ collapsed }: { collapsed: boolean }) => {
       >
         <DropdownMenuGroup>
           <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-          {organizations.map((o) => (
+          {orgs.map((o) => (
             <DropdownMenuItem
               key={o.id}
               onClick={() =>
-                o.id !== currentOrg.id && notify.info(`Switching to ${o.name}`)
+                o.id !== activeOrg.id && select(o.id)
               }
             >
               <OrgTile
@@ -85,7 +100,7 @@ export const OrgSwitcher = ({ collapsed }: { collapsed: boolean }) => {
                 className="size-5 text-[0.55rem]"
               />
               <span className="flex-1">{o.name}</span>
-              {o.id === currentOrg.id && <Check className="text-primary" />}
+              { pending ? <Loader2 className="animate-spin"/> : o.id === activeOrg.id && <Check className="text-primary" />}
             </DropdownMenuItem>
           ))}
         </DropdownMenuGroup>

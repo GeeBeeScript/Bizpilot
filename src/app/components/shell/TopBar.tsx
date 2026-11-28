@@ -29,7 +29,6 @@ import {
 } from "@/app/components/ui/dialog";
 import { useSidebar } from "@/context/sidebarContext";
 import { useBreadcrumbs, type Crumb } from "@/context/breadcrumbContext";
-import { currentUser } from "@/lib/mock/people";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/app/components/generalUIcomp/UserAvatar";
 import { Kbd } from "@/app/components/generalUIcomp/Kbd";
@@ -38,6 +37,7 @@ import { CommandSearch } from "./CommandSearch";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { QuickCreateMenu } from "./QuickCreate";
 import { UserMenu } from "./UserMenu";
+import { useViewer } from "@/context/viewerContext";
 
 const titleCase = (s: string) =>
   s.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -117,6 +117,7 @@ const TopBar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const { variant } = useShellNav();
+  const { user: currentUser } = useViewer()
 
   return (
     <header className="absolute inset-x-0 top-0 z-20 flex h-(--topbar-h) items-center gap-2 border-b border-sidebar-border bg-topbar px-3 font-heading backdrop-blur-xl backdrop-saturate-150 md:px-4">

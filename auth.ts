@@ -49,6 +49,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         const deleteOtpObject = await prisma.otpObject.delete({
           where: { id: id }
         })
+        console.log("authorize ", user)
         return {
           id: user.id,
           name: user.name,
@@ -77,11 +78,13 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       return true;
     },
     async jwt({ token, user, trigger, session }) {
+      const FIVE_MIN = 1000 * 60 * 5
       if (user) token.id = user.id;
       if (!token.id) token
 
       const requested: string | undefined = trigger === "update" ? session?.user?.activeOrgId : undefined
-      const shouldLoad = trigger === "signIn" || trigger === "signUp" || trigger === "update" || !token.activeOrgId
+      const stale = Date.now() - (token.checkedAt ?? 0) > FIVE_MIN
+      const shouldLoad = trigger === "signIn" || trigger === "signUp" || trigger === "update" || !token.activeOrgId || stale
 
       if (!shouldLoad) return token
 
@@ -102,8 +105,8 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
       }
 
       if (membership) {
-        token.activeOrgId = membership.orgId,
-        token.role = membership.role,
+        token.activeOrgId = membership.orgId
+        token.role = membership.role
         token.kind = membership.kind
       } else {
         delete token.activeOrgId;
@@ -111,8 +114,7 @@ export const { handlers, signIn, signOut, auth, unstable_update } = NextAuth({
         delete token.kind;
       }
 
-      const nextFiveMinutes = 1000 * 60 * 5
-      setInterval(() => token.checkedAt = new Date(Date.now()) , nextFiveMinutes)
+      token.checkedAt = FIVE_MIN
       return token
     },
 

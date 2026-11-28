@@ -11,10 +11,10 @@ import {
 } from "@/app/components/ui/dropdown-menu";
 import { BellRing, LogOut, ShieldCheck, UserRound } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { currentUser } from "@/lib/mock/people";
 import { UserAvatar } from "@/app/components/generalUIcomp/UserAvatar";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 import { signOutHandler } from "@/actions/auth-actions";
+import { useViewer } from "@/context/viewerContext";
 
 /** Profile menu (§4.2). `trigger` lets the sidebar footer and top bar render different triggers. */
 export const UserMenu = ({
@@ -27,6 +27,7 @@ export const UserMenu = ({
   align?: "start" | "end";
 }) => {
   const router = useRouter();
+  const { user: currentUser } = useViewer()
 
   const onSignOut = async () => {
     await signOutHandler();
@@ -72,7 +73,7 @@ export const UserMenu = ({
           </div>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" onClick={onSignOut}>
+        <DropdownMenuItem variant="destructive" onClick={onSignOut} className="cursor-pointer">
           <LogOut /> Sign out
         </DropdownMenuItem>
       </DropdownMenuContent>

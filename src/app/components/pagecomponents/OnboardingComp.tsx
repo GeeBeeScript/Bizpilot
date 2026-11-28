@@ -31,6 +31,7 @@ import Logo from "@/app/components/elements/Logo";
 import { cn } from "@/lib/utils";
 import { onboard, validateOnboardNavigation } from "@/actions/auth-actions";
 
+
 const STEPS = ["Organization", "Team", "First client", "Finish"] as const;
 const emailOk = (v: string) => /^\S+@\S+\.\S+$/.test(v);
 
@@ -106,7 +107,7 @@ const OnboardingComp = ({ firstName }: { firstName?: string }) => {
       name: org.name,
       type: org.type,
       size: org.size,
-      invitedMembers: invites,
+      invitedMembers: invites[0].email ? invites : [],
       ...(client.company && { invitedClient: {
         companyName: client.company,
         contactName: client.contact,
@@ -118,7 +119,9 @@ const OnboardingComp = ({ firstName }: { firstName?: string }) => {
     const res = await onboard(payload)
     if (!res || "error" in res) {
       setSubmissionErr(String(res.error))
+      return
     }
+    
     go(step + 1)
   }
 
@@ -318,8 +321,8 @@ const OnboardingComp = ({ firstName }: { firstName?: string }) => {
                       <NativeSelectOption value="manager">
                         Manager
                       </NativeSelectOption>
-                      <NativeSelectOption value="employee">
-                        Employee
+                      <NativeSelectOption value="member">
+                        Member
                       </NativeSelectOption>
                     </NativeSelect>
                     <Button

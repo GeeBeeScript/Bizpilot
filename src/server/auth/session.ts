@@ -5,16 +5,18 @@ import { redirect } from "next/navigation"
 import { cache } from "react"
 import { authPaths, paths } from "@/app/paths"
 import prisma from "@/lib/prisma"
+import { ForbiddenError } from "@/lib/error"
 
 export const requireMembership = cache(async () => {
     const session = await auth()
-    if (!session?.user?.id) redirect(authPaths.loginPage())
-    if (!session?.user.activeOrgId) redirect(paths.app.onboardingPage())
+    const user = session?.user
+    if (!user?.id) redirect(authPaths.loginPage())
+    if (!user.activeOrgId || !user.role || !user.kind) redirect(paths.app.onboardingPage())
     return {
-        userId: session.user.id,
-        activeOrgId: session.user.activeOrgId,
-        role: session.user.role,
-        kind: session.user.kind
+        userId: user.id,
+        activeOrgId: user.activeOrgId,
+        role: user.role,
+        kind: user.kind
     }
 })
 
@@ -24,6 +26,6 @@ export const requireFreshMembership = async () => {
         where: { userId_orgId: { userId: memberData.userId, orgId: memberData.activeOrgId } },
         select: { role: true, status: true }
     })
-    if (!membership || membership.status !== "active") throw new Error()
+    if (!membership || membership.status !== "active") throw new ForbiddenError()
     return { ...memberData, role: membership.role }
 }

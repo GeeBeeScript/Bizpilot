@@ -1,5 +1,15 @@
 // Domain types shared by the UI. Backend responses should map onto these shapes.
 
+import type { Kind, Roles } from "@/app/generated/prisma/enums";
+
+export type ViewerOrg = { id: string, name: string, initials: string, role: Roles, kind: Kind }
+
+export type Viewer = { 
+  user: { id: string; name: string; email: string; initials: string; avatarUrl?: string },
+  activeOrg: ViewerOrg,
+  orgs: ViewerOrg[]
+ }
+
 export type ID = string;
 
 export type Person = {

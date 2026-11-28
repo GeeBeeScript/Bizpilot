@@ -37,7 +37,7 @@ const onboardPayloadSchema = z.object({
   invitedMembers: z.array(
     z.object({
       email: z.email().max(100),
-      role: z.string().min(2).max(100),
+      role: z.enum(["admin", "manager", "member"]),
     })
   ).max(20).optional(),
   invitedClient: z.object({
@@ -47,7 +47,6 @@ const onboardPayloadSchema = z.object({
     acctManager: z.string().max(100).min(2)
   }).optional()
 })
-
 
 
 export const googleSignIn = async () => {
@@ -106,32 +105,35 @@ export const completeSignup = async (otpValue: number) => {
   const { name, email, password, id } = otpObj;
 
   try {
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password,
-        isOnboardCompleted: false,
-      },
-    });
-    if (!user) {
-      return { error: "Error creating user" };
-    }
-    const session = await prisma.session.create({
-      data: {
-        sessionToken: randomInt(100000000, 999999999).toString(),
-        userId: user.id,
-        lastActive: new Date().toISOString(),
-        expires: new Date(Date.now() + 60 * 60 * 24 * 10 * 1000),
-      },
-    });
-
-    const deleteOTPObject = await prisma.otpObject.delete({
-      where: { id: id }
-    })
+    const signupActions = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name,
+          email,
+          password,
+          isOnboardCompleted: false,
+        },
+      });
+      
+      if (!user) {
+        return { error: "Error creating user" };
+      }
+      // const deleteOTPObject = await tx.otpObject.delete({
+      //   where: { id: id }
+      // })
+      })
+    
   } catch (error) {
     console.log(error);
     return { error: "There was an error with your request" };
+  }
+  const login = await signIn("credentials", {
+    otp: otp,
+    redirect: false,
+  })
+
+  if (!login) {
+    return { error: "Something went wrong!" }
   }
 
   redirect(paths.app.onboardingPage())
@@ -187,8 +189,6 @@ export const completeLogin = async (otpValue: string) => {
   if (!logIn) {
     return { error: "Something went wrong!" }
   }
-
-  console.log("login successful!")
 
   if (!logIn.isOnboardCompleted) {
     redirect(paths.app.onboardingPage())
@@ -323,5 +323,6 @@ export const validateOnboardNavigation = async () => {
 }
 
 export const signOutHandler = async () => {
+  console.log("Logged out")
   await signOut({ redirectTo: "/login" });
 };

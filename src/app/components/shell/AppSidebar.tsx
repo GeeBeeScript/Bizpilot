@@ -12,7 +12,6 @@ import {
 import { Drawer, DrawerContent, DrawerTitle } from "@/app/components/ui/drawer";
 import { useSidebar } from "@/context/sidebarContext";
 import { cn } from "@/lib/utils";
-import { currentUser } from "@/lib/mock/people";
 import { UserAvatar } from "@/app/components/generalUIcomp/UserAvatar";
 import LogoIcon from "@/app/components/elements/LogoIcon";
 import LogoText from "@/app/components/elements/LogoText";
@@ -21,6 +20,7 @@ import { useShellNav } from "@/context/shellContext";
 import { ShieldCheck } from "lucide-react";
 import { OrgSwitcher } from "./OrgSwitcher";
 import { UserMenu } from "./UserMenu";
+import { useViewer } from "@/context/viewerContext";
 
 const NavLink = ({
   item,
@@ -102,6 +102,7 @@ const SidebarBody = ({
 }) => {
   const { toggleIsOpen } = useSidebar();
   const { groups: navGroups, variant } = useShellNav();
+  const { user: currentUser } = useViewer()
   return (
     <div className="flex h-full flex-col font-nav">
       {/* Header: logo + org switcher stay pinned */}

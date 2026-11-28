@@ -14,18 +14,18 @@ export const teamMembers: TeamMember[] = [
   { id: "u-nia", name: "Nia Brooks", initials: "NB", email: "nia@cornucopia.studio", role: "Designer", memberRole: "employee", status: "invited", activeProjects: 0, openTasks: 0, overdueTasks: 0, workload: 0, lastActive: daysFromNow(-2) },
 ];
 
-export const rolePermissions: { feature: string; owner: boolean; admin: boolean; manager: boolean; employee: boolean | "own"; note?: string }[] = [
-  { feature: "View dashboard", owner: true, admin: true, manager: true, employee: true },
-  { feature: "Create clients & projects", owner: true, admin: true, manager: true, employee: false },
-  { feature: "Edit tasks", owner: true, admin: true, manager: true, employee: "own", note: "Employees can edit tasks assigned to them" },
-  { feature: "Upload documents", owner: true, admin: true, manager: true, employee: true },
-  { feature: "Invite client collaborators", owner: true, admin: true, manager: true, employee: false },
-  { feature: "Create automations", owner: true, admin: true, manager: true, employee: false },
-  { feature: "View reports", owner: true, admin: true, manager: true, employee: false },
-  { feature: "Approve AI actions", owner: true, admin: true, manager: true, employee: "own", note: "Only for actions on their own work" },
-  { feature: "Manage members & roles", owner: true, admin: true, manager: false, employee: false },
-  { feature: "Billing & subscription", owner: true, admin: false, manager: false, employee: false },
-  { feature: "Delete organization", owner: true, admin: false, manager: false, employee: false },
+export const rolePermissions: { feature: string; owner: boolean; admin: boolean; manager: boolean; member: boolean | "own"; note?: string }[] = [
+  { feature: "View dashboard", owner: true, admin: true, manager: true, member: true },
+  { feature: "Create clients & projects", owner: true, admin: true, manager: true, member: false },
+  { feature: "Edit tasks", owner: true, admin: true, manager: true, member: "own", note: "Employees can edit tasks assigned to them" },
+  { feature: "Upload documents", owner: true, admin: true, manager: true, member: true },
+  { feature: "Invite client collaborators", owner: true, admin: true, manager: true, member: false },
+  { feature: "Create automations", owner: true, admin: true, manager: true, member: false },
+  { feature: "View reports", owner: true, admin: true, manager: true, member: false },
+  { feature: "Approve AI actions", owner: true, admin: true, manager: true, member: "own", note: "Only for actions on their own work" },
+  { feature: "Manage members & roles", owner: true, admin: true, manager: false, member: false },
+  { feature: "Billing & subscription", owner: true, admin: false, manager: false, member: false },
+  { feature: "Delete organization", owner: true, admin: false, manager: false, member: false },
 ];
 
 /* ---------- Billing ---------- */

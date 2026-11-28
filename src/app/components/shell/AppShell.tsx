@@ -9,13 +9,16 @@ import AppSidebar from "./AppSidebar";
 import TopBar from "./TopBar";
 import MobileNav from "./MobileNav";
 import { QuickCreateHost } from "./QuickCreate";
+import { Viewer } from "@/types";
+import { ViewerProvider } from "@/context/viewerContext";
 
 /**
  * Authenticated app shell (§3.11, §4).
  * The viewport never scrolls; only <main id="content"> does. The sidebar and top bar
  * therefore stay fixed, and the glass top bar sits over the content scrolling beneath it.
  */
-const AppShell = ({ children, defaultSidebarOpen, variant = "app" }: { children: React.ReactNode; defaultSidebarOpen: boolean; variant?: ShellVariant }) => (
+const AppShell = ({ children, defaultSidebarOpen, variant = "app", viewer }: { children: React.ReactNode; defaultSidebarOpen: boolean; variant?: ShellVariant, viewer: Viewer }) => (
+  <ViewerProvider value={viewer}>
   <ShellVariantProvider variant={variant}>
   <SidebarProvider defaultOpen={defaultSidebarOpen}>
     <BreadcrumbProvider>
@@ -38,6 +41,7 @@ const AppShell = ({ children, defaultSidebarOpen, variant = "app" }: { children:
     </BreadcrumbProvider>
   </SidebarProvider>
   </ShellVariantProvider>
+  </ViewerProvider>
 );
 
 export default AppShell;
